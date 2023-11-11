@@ -1,0 +1,7 @@
+#!if score @s money matches 100..
+#!ifn score @s experience matches ..50
+#!then
+  say Hello
+#!else
+  say Bye
+#!end

@@ -1,0 +1,17 @@
+#!proc hello_world
+  say Hello
+  say World
+#!end
+
+#!call hello_world
+#!call hello_world
+
+#!proc global
+  #!proc also_global
+    say Bye
+	say World
+  #!end
+  #!call also_global
+#!end
+
+#!call also_global

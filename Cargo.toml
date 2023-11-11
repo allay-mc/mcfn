@@ -1,0 +1,9 @@
+[package]
+name = "mcfn"
+version = "0.1.0.alpha.1"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.75"
+clap = "4.4.7"
+thiserror = "1.0.50"
