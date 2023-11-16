@@ -110,7 +110,8 @@ defined within a different procedure can be called from outside as long as the c
 is present after the procedure has been defined.
 
 ```mcfunction
-#!! ERROR: #!call foo
+#!call foo
+#^^^^^^^^^ error
 
 #!proc foo
   #!proc bar
@@ -159,7 +160,8 @@ reached. This may be useful for debugging.
 
 ### `if`, `ifn` and `else`
 
-You can use `if` to verify a condition is met and `ifn` to verify the opposite.
+You can use `if` to verify a condition is met and `ifn` to verify the opposite. If multiple `if` or `ifn`
+macros are chained, then the block is executed when **one** of the conditions is met.
 
 ```mcfunction
 #!if score @s foo matches 3
@@ -170,7 +172,7 @@ You can use `if` to verify a condition is met and `ifn` to verify the opposite.
 #!end
 ```
 
-You can also add an `else`-block.
+You can also add an `else`-block which will run if none of the conditions were met.
 
 ```mcfunction
 #!if score @s foo matches 3
@@ -183,9 +185,6 @@ You can also add an `else`-block.
   say World
 #!end
 ```
-
-If you change the state in the first block that the condition depends on the else
-block is still executed.
 
 
 ### `include`
@@ -223,60 +222,45 @@ scoreboard objectives remove x
 ```
 
 
-### `switch`, `case`, `ncase` and `default`
+### `when` and `else`
 
-Using `if`, `ifn` and `else` for multiple different branches may result in a deeply
-nested unreadable and repetitive tree of conditions and blocks. In such scenario a
-`switch` macro may be useful.
+If you have used programming languages like C or Rust before you might be familar with
+conditional compilation. Conditional compilation allows you to build variable programs
+depending on configuration settings or the OS for instance.
+
+```rust
+if cfg!(any(target_os = "windows", target_os = "linux")) {
+    // do performant stuff
+} else if cfg!(any(target_os = "android", target_os = "macos")) {
+    // do less performant stuff
+}
+```
+
+This can be implemented in `mcfn` in a way as well by using the `when` macro.
 
 ```mcfunction
-#!switch score @s money
-  #!case matches 69
-    say Nice
-    #!then
-  #!ncase matches 69
-    say Ok
-    #!then
-  #!case matches 1000..
-    say Rich
-    #!end
-  #!case matches ..0
-    say I need to get a job
-    #!end
-  #!default
-    say Life is good, you know what I mean?
+#!when MCFN_TARGET windows
+#!when MCFN_TARGET linux
+#!then
+  say Hello
+#!else
+  say Hi
 #!end
 ```
 
-The argument of the `switch` macro defines the first part of the condition. Each
-case contains the second half of the condition as an argument. The above snippet
-matches the pseudo code below.
+Such conditions compare a specified environment variable (such as `MCFN_TARGET`) with
+a string (such as `windows`). The block is rendered when the condition is met and
+ignored otherwise (also if the environment variable is not defined). The structure
+matches [normal conditions](#if-ifn-and-else) with the exception that `when`
+is used instead of `if` and negated `when` macros do not exist. Note that `when` branches
+still run `log` and `include` macros and validate the blocks. The **rendered** block will
+just be ignored during the tranpilation step.
 
-```rust
-if "scores @s money matches 69" {
-  run("say Nice");
-}
-if !"score @s money matches 69" {
-  run("say Ok");
-}
-if "score @s money matches 1000.." {
-  run("say Rich");
-} else if "score @s matches ..0" {
-  run("say I need to get a job");
-} else {
-  run("say Life is good, you know what I mean?");
-}
+You can then control the transpilation with bash for example by using this syntax:
+
+```bash
+MCFN_TARGET="windows" mcfn script.mcfn
 ```
-
-
-#### Behavior of `case` and `ncase`
-
-In most programming languages, a `case` usually ends with a `break` statement which
-exits the entire switch block. In `mcfn` the equal is the `end` macro. If a case
-block however does not end with a `break`, then other `case`s following are tried to
-match as well. In `mcfn` this can be achieved by ending the case block with the
-`then` macro. Each `case` or `ncase` must end with either `end` or `then` whereas
-the optional `default` macro at the end must not end with either of them.
 
 
 ## Good To Know
@@ -297,4 +281,8 @@ else it might result in unexpected behaviour.
 
 ### Usage in Allay
 
-TODO
+Add the following ruby script to your script directory and refer to it in `allay.toml`.
+
+```ruby
+# TODO
+```

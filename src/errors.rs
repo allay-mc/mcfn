@@ -42,4 +42,7 @@ pub enum ErrorKind {
 
     #[error("proc '{0}' does not exist")]
     UnknownProc(String),
+
+    #[error("cannot include '{0}'")]
+    Include(String),
 }

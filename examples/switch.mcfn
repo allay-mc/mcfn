@@ -1,8 +1,0 @@
-#!switch score core num
-  #!case matches 3
-    say Fizz
-  #!case matches 5
-    say Buzz
-  #!default
-    say FizzBuzz
-#!end

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::{env, fs};
 
 use crate::errors::{Error, ErrorKind, Location};
 use crate::macros::Macro;
@@ -13,7 +13,7 @@ const MACRO_IDENTIFIER: &'static str = "#!";
 
 #[derive(Clone)]
 struct Line {
-    pub file: String,
+    pub file: PathBuf,
     pub line: u32,
     pub content: LineContent,
 }
@@ -48,16 +48,14 @@ impl FromStr for LineContent {
                     arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
                         .to_string(),
                 ),
-                "case" => Macro::Case(
+                "declare" => Macro::Declare(
                     arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
                         .to_string(),
                 ),
-                "default" => {
-                    if arg.is_some() {
-                        return Err(ErrorKind::UnexpectedArgument(name.to_string()));
-                    }
-                    Macro::Default
-                }
+                "delete" => Macro::Delete(
+                    arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
+                        .to_string(),
+                ),
                 "else" => {
                     if arg.is_some() {
                         return Err(ErrorKind::UnexpectedArgument(name.to_string()));
@@ -82,11 +80,8 @@ impl FromStr for LineContent {
                     arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
                         .to_string(),
                 ),
+                "log" => Macro::Log(arg.unwrap_or_default().to_string()),
                 "proc" => Macro::Proc(
-                    arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
-                        .to_string(),
-                ),
-                "switch" => Macro::Switch(
                     arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
                         .to_string(),
                 ),
@@ -95,6 +90,21 @@ impl FromStr for LineContent {
                         return Err(ErrorKind::UnexpectedArgument(name.to_string()));
                     }
                     Macro::Then
+                }
+                "when" => {
+                    let mut subargs = arg
+                        .ok_or(ErrorKind::MissingArgument(name.to_string()))?
+                        .split_whitespace();
+                    let env_var = subargs
+                        .next()
+                        .ok_or(ErrorKind::MissingArgument(name.to_string()))?;
+                    let env_val = subargs
+                        .next()
+                        .ok_or(ErrorKind::MissingArgument(name.to_string()))?;
+                    if let Some(x) = subargs.next() {
+                        return Err(ErrorKind::UnexpectedArgument(x.to_string()));
+                    };
+                    Macro::When(env_var.to_string(), env_val.to_string())
                 }
                 "with" => Macro::With(
                     arg.ok_or(ErrorKind::MissingArgument(name.to_string()))?
@@ -115,7 +125,7 @@ pub fn parse_file(path: &Path) -> anyhow::Result<()> {
     let mut rendered_lines = Vec::new();
     for (row, line) in read_lines(path)?.enumerate() {
         rendered_lines.push(Line {
-            file: path.display().to_string(),
+            file: path.to_path_buf(),
             line: row.try_into()?,
             content: LineContent::from_str(&line?)?,
         });
@@ -127,7 +137,15 @@ pub fn parse_file(path: &Path) -> anyhow::Result<()> {
         &mut HashMap::new(),
         0,
     )?);
-    fs::write(path.with_extension("mcfunction"), rendered)?;
+    fs::write(
+        if path.extension().is_some_and(|ext| ext == "mcfunction") {
+            path.with_file_name(path.file_stem().unwrap_or(path.file_name().unwrap()))
+                .with_extension("mcfunction")
+        } else {
+            path.with_extension("mcfunction")
+        },
+        rendered,
+    )?;
     Ok(())
 }
 
@@ -141,6 +159,7 @@ fn render_block(
 
     let mut ifs: Vec<String> = Vec::new();
     let mut ifns: Vec<String> = Vec::new();
+    let mut static_ifs: Vec<bool> = Vec::new();
 
     let scoped_variable: String = format!("{}_{}", MAGIC, depth);
 
@@ -153,36 +172,18 @@ fn render_block(
             LineContent::Macro(Macro::Call(identifier)) => {
                 let content = procs.get(&identifier).ok_or(Error {
                     location: Location {
-                        file: line.file,
+                        file: line.file.display().to_string(),
                         line: line.line,
                     },
                     kind: ErrorKind::UnknownProc(identifier),
                 })?;
                 rendered.push_str(content);
             }
-            LineContent::Macro(Macro::Case(condition)) => match context.first() {
-                Some(Macro::Switch(prefix_cond)) => {
-                    let prefix = format!("execute if {} {} run ", prefix_cond, condition);
-                    let content = render_block(block, context.clone(), procs, depth + 1)?;
-                    rendered.push_str(
-                        &content
-                            .lines()
-                            .map(|l| format!("{}{}\n", prefix, l))
-                            .collect::<String>(),
-                    );
-                }
-                _ => {
-                    return Err(Error {
-                        location: Location {
-                            file: line.file,
-                            line: line.line,
-                        },
-                        kind: ErrorKind::UnexpectedMacro("case".to_string()),
-                    })
-                }
-            },
-            LineContent::Macro(Macro::Default) => {
-                // TODO
+            LineContent::Macro(Macro::Declare(score)) => {
+                rendered.push_str(&format!("scoreboard objectived add {} dummy\n", score));
+            }
+            LineContent::Macro(Macro::Delete(score)) => {
+                rendered.push_str(&format!("scoreboard objectives remove {}", score));
             }
             LineContent::Macro(Macro::Else) => match context.first() {
                 Some(Macro::If(_) | Macro::Ifn(_)) => {
@@ -191,7 +192,7 @@ fn render_block(
                 _ => {
                     return Err(Error {
                         location: Location {
-                            file: line.file,
+                            file: line.file.display().to_string(),
                             line: line.line,
                         },
                         kind: ErrorKind::UnexpectedMacro("else".to_string()),
@@ -199,17 +200,11 @@ fn render_block(
                 }
             },
             LineContent::Macro(Macro::End) => match context.first() {
-                Some(
-                    Macro::If(_)
-                    | Macro::Ifn(_)
-                    | Macro::Proc(_)
-                    | Macro::Switch(_)
-                    | Macro::Case(_), // cannot be first FIXME
-                ) => return Ok(rendered),
+                Some(Macro::If(_) | Macro::Ifn(_) | Macro::Proc(_)) => return Ok(rendered),
                 _ => {
                     return Err(Error {
                         location: Location {
-                            file: line.file,
+                            file: line.file.display().to_string(),
                             line: line.line,
                         },
                         kind: ErrorKind::UnexpectedMacro("end".to_string()),
@@ -224,13 +219,26 @@ fn render_block(
                 ifns.push(condition.to_string());
                 context.push(ctx.clone());
             }
-            LineContent::Macro(Macro::Include(path)) => todo!(),
+            LineContent::Macro(Macro::Include(path)) => {
+                match fs::read_to_string(line.file.parent().unwrap().join(path)) {
+                    Err(_) => {
+                        return Err(Error {
+                            location: Location {
+                                file: line.file.display().to_string(),
+                                line: line.line,
+                            },
+                            kind: ErrorKind::Include(line.file.display().to_string()),
+                        })
+                    }
+                    Ok(content) => rendered.push_str(&content),
+                };
+            }
             LineContent::Macro(ref ctx @ Macro::Proc(ref identifier)) => {
                 context.push(ctx.clone());
                 let content = render_block(block, context.clone(), procs, depth + 1)?;
                 procs.insert(identifier.to_string(), content);
             }
-            LineContent::Macro(ref ctx @ Macro::Switch(_)) => context.push(ctx.clone()),
+            LineContent::Macro(Macro::Log(message)) => println!("{}: {}", line.line, message),
             LineContent::Macro(Macro::Then) => {
                 match context.first() {
                     Some(Macro::If(_) | Macro::Ifn(_)) => {
@@ -288,19 +296,30 @@ fn render_block(
                                 .collect::<String>(),
                         );
                     }
-                    Some(Macro::Case(_)) => {
-                        // TODO
+                    Some(Macro::When(_, _)) => {
+                        let content = render_block(block, context.clone(), procs, depth + 1)?;
+                        if static_ifs.contains(&true) {
+                            rendered.push_str(&content);
+                        }
+                        let else_content = render_block(block, context.clone(), procs, depth + 1)?;
+                        if !static_ifs.contains(&true) {
+                            rendered.push_str(&else_content);
+                        }
                     }
                     _ => {
                         return Err(Error {
                             location: Location {
-                                file: line.file,
+                                file: line.file.display().to_string(),
                                 line: line.line,
                             },
                             kind: ErrorKind::UnexpectedMacro("then".to_string()),
                         })
                     }
                 }
+            }
+            LineContent::Macro(ref ctx @ Macro::When(ref env_var, ref env_val)) => {
+                static_ifs.push(env::var(env_var).is_ok_and(|val| &val == env_val));
+                context.push(ctx.clone());
             }
             LineContent::Macro(Macro::With(prefix)) => todo!(),
             LineContent::Empty => {}
