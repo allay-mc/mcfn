@@ -4,6 +4,7 @@ name: Cross Build
 
 on:
   push:
+    branches: ["master"]
   pull_request:
 
 env:
