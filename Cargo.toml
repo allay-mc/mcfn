@@ -1,7 +1,13 @@
 [package]
 name = "mcfn"
-version = "0.1.0-alpha.1"
+version = "0.0.1"
+authors = ["Jonas da Silva"]
 edition = "2021"
+description = "An mcfunction preprocessor"
+repository = "https://github.com/allay-mc/mcfn"
+license = "MIT"
+keywords = ["minecraft", "bedrock", "mcfunction", "development", "preprocessor"]
+categories = ["command-line-utilities", "compilers", "development-tools", "parser-implementations"]
 
 [dependencies]
 anyhow = "1.0.75"
