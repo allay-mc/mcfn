@@ -1,6 +1,6 @@
 # mcfn - An mcfunction preprocessor
 
-> **Note**
+> [!NOTE]
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
 > Java Edition due to its different command syntax.
 
