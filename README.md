@@ -1,6 +1,6 @@
 # mcfn - An mcfunction preprocessor
 
-> **Note**
+> [!NOTE]
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
 > Java Edition due to its different command syntax.
 
@@ -15,9 +15,7 @@
 
 Instead of inventing an entire new programming language like
 [mcscript](https://mcscript.stevertus.com/) for Java Edition, `mcfn` extends the
-`mcfunction` to save repetitive tasks in a more readable way. If you want more
-controll, check out the
-[`templating` script for Allay](https://github.com/allay-mc/scripts/blob/master/templating.rb).
+`mcfunction` format to save repetitive tasks in a more readable way.
 
 `mcfn` makes use of the `execute` and `scoreboard` commands to simulate a runtime
 within Minecraft. This allows dynamic conditional programming with several macros.
@@ -131,21 +129,21 @@ below:
 scoreboard objectes add _internal dummy
 
 #!proc fizzbuzz
-  #!switch score _internal _arg_a
-    #!case matches 3
-      say Fizz
-    #!case matches 5
-      say Buzz
-    #!default
-      say None
+  #!if scores @s _arg_a matches 3
+  #!then
+    say Hi
+  #!else
+    say Hello
   #!end
 #!end
 
-scoreboard players set _internal _arg_a 3
+scoreboard players set @s _arg_a 3
 #!call fizzbuzz
+scoreboard players reset @s _arg_a
 
-scoreboard players set _internal _arg_a 20
+scoreboard players set @s _arg_a 20
 #!call fizzbuzz
+scoreboard players reset @s _arg_a
 ```
 
 
