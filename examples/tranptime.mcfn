@@ -1,0 +1,6 @@
+#!when MCFN_FOO 1
+#!then
+  say Foo
+#!else
+  say Bar
+#!end

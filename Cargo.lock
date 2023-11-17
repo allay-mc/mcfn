@@ -93,9 +93,9 @@ checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 name = "mcfn"
 version = "0.1.0-alpha.1"
 dependencies = [
- "anstyle",
  "anyhow",
  "clap",
+ "termstatus",
  "thiserror",
 ]
 
@@ -132,6 +132,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "termstatus"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d4a827b36454461437928e1ee7ec9860feb52e647fe39954b7edcee1d50b902"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

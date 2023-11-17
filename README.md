@@ -1,4 +1,4 @@
-# mcfn - A mcfunction preprocessor
+# mcfn - An mcfunction preprocessor
 
 > **Note**
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
@@ -8,6 +8,7 @@
 ## Overview
 
 <!-- TODO: image of example program -->
+<!-- TODO: gitattributes vendor built mcfunctions in examples -->
 
 
 ## Philosophy

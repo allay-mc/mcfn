@@ -186,7 +186,7 @@ fn render_block(
                 rendered.push_str(&format!("scoreboard objectives remove {}", score));
             }
             LineContent::Macro(Macro::Else) => match context.first() {
-                Some(Macro::If(_) | Macro::Ifn(_)) => {
+                Some(Macro::If(_) | Macro::Ifn(_) | Macro::When(_, _)) => {
                     return Ok(rendered);
                 }
                 _ => {
@@ -200,7 +200,13 @@ fn render_block(
                 }
             },
             LineContent::Macro(Macro::End) => match context.first() {
-                Some(Macro::If(_) | Macro::Ifn(_) | Macro::Proc(_)) => return Ok(rendered),
+                Some(
+                    Macro::If(_)
+                    | Macro::Ifn(_)
+                    | Macro::Proc(_)
+                    | Macro::With(_)
+                    | Macro::When(_, _),
+                ) => return Ok(rendered),
                 _ => {
                     return Err(Error {
                         location: Location {
@@ -321,7 +327,16 @@ fn render_block(
                 static_ifs.push(env::var(env_var).is_ok_and(|val| &val == env_val));
                 context.push(ctx.clone());
             }
-            LineContent::Macro(Macro::With(prefix)) => todo!(),
+            LineContent::Macro(ref ctx @ Macro::With(ref prefix)) => {
+                context.push(ctx.clone());
+                let content = render_block(block, context.clone(), procs, depth)?;
+                rendered.push_str(
+                    &content
+                        .lines()
+                        .map(|l| format!("{} {}\n", prefix, l))
+                        .collect::<String>(),
+                );
+            }
             LineContent::Empty => {}
         };
     }

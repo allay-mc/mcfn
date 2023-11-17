@@ -1,0 +1,4 @@
+#!with execute as @a run
+  say Hello
+  say I am @s
+#!end
