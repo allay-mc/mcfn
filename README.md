@@ -4,6 +4,9 @@
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
 > Java Edition due to its different command syntax.
 
+![Crates.io](https://img.shields.io/crates/v/mcfn?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/allay-mc/mcfn?style=for-the-badge)
+
 
 ## Overview
 
@@ -15,10 +18,9 @@
 
 Instead of inventing an entire new programming language like
 [mcscript](https://mcscript.stevertus.com/) for Java Edition, `mcfn` extends the
-`mcfunction` format to save repetitive tasks in a more readable way.
+`mcfunction` format with several macros to avoid repetitive tasks in a readable way.
 
-`mcfn` makes use of the `execute` and `scoreboard` commands to simulate a runtime
-within Minecraft. This allows dynamic conditional programming with several macros.
+`mcfn` primarily makes use of the `execute` and `scoreboard` commands which make it possible to achieve conditions at runtime.
 
 
 ## Installtion
@@ -71,21 +73,27 @@ used at the end of a command. The other kind of comment starts with a hash sign 
 two bangs (`#!!`). They must be used as a whole line meaning they cannot be appended
 to a macro or a command.
 
+```mcfunction
+# included in output file
+
+#!! not included in output file
+````
+
 
 ### `with`
 
 The `with` macro preprends each line of the block with its argument.
 
 ```mcfunction
-#!with execute as @a
+#!with execute as @a run
   say Hello
   say World
 #!end
 
 #!! same as
 
-executa as @a say Hello
-execute as @a say World
+executa as @a run say Hello
+execute as @a run say World
 ```
 
 
@@ -126,8 +134,6 @@ Procedures cannot have parameters. However you can implements such behaviour as 
 below:
 
 ```mcfunction
-scoreboard objectes add _internal dummy
-
 #!proc fizzbuzz
   #!if scores @s _arg_a matches 3
   #!then
