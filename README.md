@@ -4,6 +4,9 @@
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
 > Java Edition due to its different command syntax.
 
+![Crates.io](https://img.shields.io/crates/v/mcfn?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/allay-mc/mcfn?style=for-the-badge)
+
 
 ## Overview
 
@@ -17,7 +20,7 @@ Instead of inventing an entire new programming language like
 [mcscript](https://mcscript.stevertus.com/) for Java Edition, `mcfn` extends the
 `mcfunction` format with several macros to avoid repetitive tasks in a readable way.
 
-`mcfn` primarily makes use of the `execute` and `scoreboard` commands which make it possible to have conditions.
+`mcfn` primarily makes use of the `execute` and `scoreboard` commands which make it possible to achieve conditions at runtime.
 
 
 ## Installtion
