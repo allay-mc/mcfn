@@ -15,10 +15,9 @@
 
 Instead of inventing an entire new programming language like
 [mcscript](https://mcscript.stevertus.com/) for Java Edition, `mcfn` extends the
-`mcfunction` format to save repetitive tasks in a more readable way.
+`mcfunction` format with several macros to avoid repetitive tasks in a readable way.
 
-`mcfn` makes use of the `execute` and `scoreboard` commands to simulate a runtime
-within Minecraft. This allows dynamic conditional programming with several macros.
+`mcfn` primarily makes use of the `execute` and `scoreboard` commands which make it possible to have conditions.
 
 
 ## Installtion
