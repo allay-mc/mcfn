@@ -120,7 +120,7 @@ impl FromStr for LineContent {
     }
 }
 
-pub fn parse_file(path: &Path) -> anyhow::Result<()> {
+pub fn parse_file(path: &Path) -> anyhow::Result<String> {
     // TODO: validate file extension
     let mut rendered_lines = Vec::new();
     for (row, line) in read_lines(path)?.enumerate() {
@@ -137,16 +137,7 @@ pub fn parse_file(path: &Path) -> anyhow::Result<()> {
         &mut HashMap::new(),
         0,
     )?);
-    fs::write(
-        if path.extension().is_some_and(|ext| ext == "mcfunction") {
-            path.with_file_name(path.file_stem().unwrap_or(path.file_name().unwrap()))
-                .with_extension("mcfunction")
-        } else {
-            path.with_extension("mcfunction")
-        },
-        rendered,
-    )?;
-    Ok(())
+    Ok(rendered)
 }
 
 fn render_block(
