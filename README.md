@@ -73,21 +73,27 @@ used at the end of a command. The other kind of comment starts with a hash sign 
 two bangs (`#!!`). They must be used as a whole line meaning they cannot be appended
 to a macro or a command.
 
+```mcfunction
+# included in output file
+
+#!! not included in output file
+````
+
 
 ### `with`
 
 The `with` macro preprends each line of the block with its argument.
 
 ```mcfunction
-#!with execute as @a
+#!with execute as @a run
   say Hello
   say World
 #!end
 
 #!! same as
 
-executa as @a say Hello
-execute as @a say World
+executa as @a run say Hello
+execute as @a run say World
 ```
 
 
