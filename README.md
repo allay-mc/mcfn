@@ -134,8 +134,6 @@ Procedures cannot have parameters. However you can implements such behaviour as 
 below:
 
 ```mcfunction
-scoreboard objectes add _internal dummy
-
 #!proc fizzbuzz
   #!if scores @s _arg_a matches 3
   #!then
