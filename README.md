@@ -1,5 +1,13 @@
 # mcfn - An mcfunction preprocessor
 
+> [!WARNING]
+> Further development has been paused (for now) in favor
+> of inventing an entire new "programming language"
+> which compiles to mcfunction(s).
+>
+> `mcfn` is not working as expected so use
+> this with that in mind.
+
 > [!NOTE]
 > This preprocessor is primarily designed for Bedrock Edition and may not work for
 > Java Edition due to its different command syntax.
